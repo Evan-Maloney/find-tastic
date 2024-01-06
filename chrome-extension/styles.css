@@ -16,11 +16,12 @@ body {
   .title {
     color: #000;
     font-family: Arial;
-    font-size: 32px;
+    font-size: 34px;
     font-style: normal;
     font-weight: 400;
     line-height: normal;
     padding-bottom: 20px;
+    display: flex;
   }
   
   .search-box {
@@ -39,7 +40,6 @@ body {
   
   .search-box .arrows {
     display: flex;
-    flex-direction: column;
     justify-content: space-around;
   }
   
