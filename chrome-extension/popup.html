@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Search Interface</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="popup.css">
 </head>
 
 <div class="search-container">
@@ -20,8 +20,8 @@
         </div>
     </div>
 
-    <div class="search-box">
-        <input type="text" placeholder="Search" />
+    <div class="search-box-div">
+        <input type="text" id="search-box" placeholder="Search" />
         <div class="arrows">
             <span>⬆️</span>
             <span>⬇️</span>
@@ -29,14 +29,15 @@
     </div>
 
     <div class="options">
-        <label><input type="radio" name="search-option" value="verbatim" /> Verbatim</label>
+        <label><input type="radio" name="search-option" value="verbatim" checked="checked"/> Verbatim</label>
         <label><input type="radio" name="search-option" value="similar" /> Similar Match</label>
         <label><input type="radio" name="search-option" value="paragraph" /> Paragraph Match</label>
     </div>
     <div class="slider-container">
-        <label for="threshold">Matching Threshold</label>
+        <label id="threshold-label">Matching Threshold: 70%</label>
         <input type="range" id="threshold" name="threshold" min="0" max="100" value="70">
     </div>
 </div>
 </body>
+<script src="popup.js"></script>
 </html>
