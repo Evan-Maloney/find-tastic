@@ -9,6 +9,7 @@
     "persistent": true
   },
   "permissions": [
+    "storage",
     "tabs",
     "http://*/",
     "https://*/"
