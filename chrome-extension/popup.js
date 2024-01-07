@@ -4,66 +4,114 @@ document.querySelector("#threshold").addEventListener("change", function(e){
 })
 
 
-const active_tab_url = ""
+let active_tab_url = null
 
 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 	// since only one tab should be active and in the current window at once
 	// the return variable should only have one entry
-	active_tab_url = tabs[0].url
+	active_tab_url = String(tabs[0].url)
+	/*console.log('acccc '+ active_tab_url)
+
+	console.log('active tab url grabbed: '+active_tab_url)
+	chrome.storage.local.get(active_tab_url, (data) => {
+		//only run the scrape script if this is a new tab that we open the extension on
+
+		console.log(data)
+		console.log(Object.keys(data).length)
+		if (Object.keys(data).length == 0) {
+			runScrape()
+		}
+	})*/
+
+	
 });
 
+//need code here to remove tabs url:key pair from localstorage when we close a tab
+/*
+chrome.tabs.onRemoved.addListener(function(tabid, removed) {
+	console.log(tabid)
+	console.log(removed)
+	alert("tab closed")
+})
+*/
 
-chrome.storage.local.get([active_tab_url], (data) => {
-    //only run the scrape script if this is a new tab that we open the extension on
 
-    console.log(data)
-	console.log(Object.keys(data).length)
-    if (Object.keys(data).length == 0) {
-    // run the scrape.js script into the current tab after the popout has loaded
-        window.addEventListener('load', function (evt) {
-            chrome.extension.getBackgroundPage().chrome.tabs.executeScript(null, {
-                file: 'scrape.js'
-            })
-        })
-    }
+//just run this everytime I dont care anymore
+window.addEventListener('load', function (evt) {
+	chrome.extension.getBackgroundPage().chrome.tabs.executeScript(null, {
+		file: 'scrape.js'
+	})
 })
 
 
-let scraped_site = null
+
 
 chrome.runtime.onMessage.addListener(function (message) {
-    //console.log(message)
-	console.log(scraped_site)
-    scraped_site = message
-
-	addDoc()
+	addDocLoop(message)
 })
 
 
-document.getElementById('search-btn').addEventListener("click", function() {
+// only run this once we have obtained the active tab url to check if we already uploaded it to the db
+function addDocLoop(message) {
+	if (active_tab_url == null) {
+		setTimeout(addDocLoop, 250)
+	} else {
+		// check local storage for pages we already scraped
+		// if url doesnt exist then scrape and add it
+		chrome.storage.local.get('pages', (obj) => {
+			//only run the scrape script if this is a new tab that we open the extension on
+	
+			console.log(obj.pages)
 
-    //alert(scraped_site.slice(0, 200))
-    //console.log('as')
+			let saved_urls = Object.keys(obj.pages)
 
-	chrome.storage.local.get([active_tab_url], (obj) => {
-		console.log('testaaaa')
-		console.log(obj.page)
+			if (!saved_urls.includes(active_tab_url)) {
+				addDoc(obj.pages, message)
+			}
 
-		text_input = document.getElementById('search-box').innerText
+		})
+		
+	}
+}
 
-		if (Object.keys(obj).length > 0) {
-			queryDoc(obj.page, text_input)
-		}
-	})
+function queryDocLoop() {
+	if (active_tab_url == null) {
+		setTimeout(addDocLoop, 250)
+	} else {
+		chrome.storage.local.get('pages', (obj) => {
+			console.log('testaaaa')
+			console.log(obj.pages)
+	
+			let text_input = document.getElementById('search-box').value
 
+			let threshold = parseFloat(document.getElementById('threshold').value)/100.0
+	
+			let saved_urls = Object.keys(obj.pages)
+	
+			if (!saved_urls.includes(active_tab_url)) {
+				addDoc(obj.pages, message)
+			}
+	
+			let page_key = obj.pages[active_tab_url]
+	
+			
+			queryDoc(page_key, text_input, threshold)
+			
+		})
+	}
+}
+
+
+document.getElementById('search-btn').addEventListener("click", () => {
+	queryDocLoop()
 })
 
 
-async function queryDoc(page_key, text_input) {
+async function queryDoc(page_key, text_input, threshold) {
 	const queryDocURL = "http://192.168.104.151/queryDocument"
 
 
-
+	console.log('test sinput: '+text_input)
 	const response = await fetch(queryDocURL, {
 		method: 'POST',
 		//mode: 'no-cors',
@@ -71,7 +119,8 @@ async function queryDoc(page_key, text_input) {
 		  'Accept': 'application/json',
 		  'Content-Type': 'application/json'
 		},
-		body: JSON.stringify({'text':text_input, 'key': page_key})
+		
+		body: JSON.stringify({'text':text_input, 'key': page_key, 'threshold': threshold})
 	})
 
 	const json_resp = await response.json()
@@ -83,35 +132,56 @@ async function queryDoc(page_key, text_input) {
 }
 
 
-async function addDoc() {
-    if (scraped_site != null) {
+async function addDoc(pages, doc_data) {
 
-        console.log('dsadasdasdas')
+	
+   
 
-        const addDocURL = "http://192.168.104.151/addDocument"
-        //const response = await fetch("http://ec2-3-138-122-52.us-east-2.compute.amazonaws.com/addDocument/"+scraped_site);
+	console.log('add doc start')
+
+	const addDocURL = "http://192.168.104.151/addDocument"
+	//const response = await fetch("http://ec2-3-138-122-52.us-east-2.compute.amazonaws.com/addDocument/"+scraped_site);
 
 
-        const response = await fetch(addDocURL, {
-            method: 'POST',
-            //mode: 'no-cors',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({'text':String(scraped_site)})
-        })
+	const response = await fetch(addDocURL, {
+		method: 'POST',
+		//mode: 'no-cors',
+		headers: {
+			'Accept': 'application/json',
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({'text':doc_data})
+	})
 
-        const json_resp = await response.json()
-        console.log('test')
+	console.log('add doc end')
 
-        if (json_resp.status == "added") {
-            chrome.storage.local.set({ 'page': json_resp.key })
-        }
+	const json_resp = await response.json()
+	console.log('test')
 
-		console.log(json_resp)
+	if (json_resp.status == "added") {
+		console.log('adding')
 
-        //console.log(data);
-        scraped_site = null
-    }
+		/*pages.push({
+			key: active_tab_url,
+			value: json_resp.key
+		})*/
+
+		pages[active_tab_url] = json_resp.key
+
+		chrome.storage.local.set({'pages': pages}, function(){
+			//  Data's been saved boys and girls, go on home
+			console.log('added: '+ active_tab_url)
+			console.log('key: '+ json_resp.key)
+
+			chrome.storage.local.get('pages', (test) => {
+				console.log('set should update new entry')
+				console.log(test)
+			})
+		})
+	}
+
+	console.log(json_resp)
+
+
+    
 }

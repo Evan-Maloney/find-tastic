@@ -33,3 +33,5 @@ document.addEventListener('keydown', function(event) {
 // Example usage
 const words = ['Hunter', 'Nelson', 'Kings'];
 highlightWord(words);
+
+
