@@ -12,6 +12,11 @@ window.addEventListener('load', function (evt) {
 });
 
 
+let scraped_site = null
+
 chrome.runtime.onMessage.addListener(function (message) {
 	console.log(message)
+	scraped_site = message
 });
+
+
