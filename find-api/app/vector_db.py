@@ -100,10 +100,12 @@ def query_document(key, query):
     results = vector_store.similarity_search_with_score(query, namespace=key, k=2)
     # Extract the start and end indices from the metadata
     indexes = []
+    phrases = []
     for result in results:
         result = result[0]
         indexes.append((result.metadata['start'], result.metadata['end']))
-    return indexes
+        phrases.append(result.page_content)
+    return indexes, phrases
 # Example usage
 # document = "This is a test document. It has several sentences, and it's a good example for n-gram processing."
 # process_document(document, "testv1")

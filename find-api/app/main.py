@@ -46,8 +46,8 @@ def addDocument(document: Document):
 def queryDocument(key: str, query: str):
     '''Given a key and a query, return a list of the indexes where the query is found in the document.
     return format: {"key": key, "query": query, "indexes": [(start, end), (start, end), ...]}'''
-    indexes = query_document(key, query)
-    return {"key": key, "query": query, "indexes": indexes, "status": "found"}
+    indexes, phrases = query_document(key, query)
+    return {"key": key, "query": query, "indexes": indexes, "phrases": phrases}
 
 @app.get("/deleteDocument/{key}")
 def deleteDocument(key: str):
