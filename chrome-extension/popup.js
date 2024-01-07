@@ -61,12 +61,16 @@ function addDocLoop(message) {
 		chrome.storage.local.get('pages', (obj) => {
 			//only run the scrape script if this is a new tab that we open the extension on
 	
-			console.log(obj.pages)
+			if (obj.pages != null) {
+				console.log(obj.pages)
 
-			let saved_urls = Object.keys(obj.pages)
+				let saved_urls = Object.keys(obj.pages)
 
-			if (!saved_urls.includes(active_tab_url)) {
-				addDoc(obj.pages, message)
+				if (!saved_urls.includes(active_tab_url)) {
+					addDoc(obj.pages, message)
+				}
+			} else {
+				addDoc({}, message)
 			}
 
 		})
@@ -112,6 +116,12 @@ async function queryDoc(page_key, text_input, threshold) {
 
 
 	console.log('test sinput: '+text_input)
+
+	console.log('page_key: '+page_key)
+
+	console.log('threshold: '+threshold)
+
+
 	const response = await fetch(queryDocURL, {
 		method: 'POST',
 		//mode: 'no-cors',
@@ -128,7 +138,23 @@ async function queryDoc(page_key, text_input, threshold) {
 
 	console.log(json_resp)
 
-	console.log(json_resp.indexes)
+
+	const response_2 = await fetch("http://192.168.104.151/addSearchPhrases", {
+		method: 'POST',
+		//mode: 'no-cors',
+		headers: {
+		  'Accept': 'application/json',
+		  'Content-Type': 'application/json'
+		},
+		
+		body: JSON.stringify({'array':json_resp.phrases})
+	})
+
+	const json_resp_2 = await response_2.json()
+	console.log('json_resp_2 done')
+
+	//chrome.runtime.sendMessage({searched:true, data: json_resp.phrases})
+
 }
 
 
@@ -154,6 +180,8 @@ async function addDoc(pages, doc_data) {
 	})
 
 	console.log('add doc end')
+
+	console.log(doc_data)
 
 	const json_resp = await response.json()
 	console.log('test')

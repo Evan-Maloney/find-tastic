@@ -5,7 +5,7 @@
   "description": "A Chrome extension for smart, fuzzy text searching.",
   
   "background": {
-    "scripts": ["popup.js"],
+    "scripts": ["popup.js", "scrape.js"],
     "persistent": true
   },
   "permissions": [
